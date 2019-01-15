@@ -199,6 +199,10 @@ The [`show()`] method takes an optional argument, `width`:
 In the above example, the picture will be shrunk or expanded so that
 its width is 250 pixels.
 
+You can also insert an image using Markdown formatting if you specify the full
+URL. For example, `![Alternate text](https://i.imgur.com/OM1jAhs.gif)`. The URL
+could also include a Mako tag. E.g., `![Alternate text](${my_url_var})`.
+
 # <a name="emoji"></a>Inserting inline icons
 
 If you have defined "decorations" in an [`image sets`] block (see
