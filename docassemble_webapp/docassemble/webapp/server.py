@@ -9545,7 +9545,9 @@ def index(action_argument=None, refer=None):
         return true;
       }
       function daStopCheckingIn(){
-        daCheckout();
+        if (daCheckinSeconds > 0){
+          daCheckout();
+        }
         if (daCheckinInterval != null){
           clearInterval(daCheckinInterval);
         }

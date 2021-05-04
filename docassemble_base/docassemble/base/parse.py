@@ -84,6 +84,7 @@ do_not_translate = """<%doc>
   do not translate
 </%doc>
 """
+illegal_dir = '..' + os.path.sep
 
 def process_audio_video_list(the_list, the_user_dict):
     output = list()
@@ -6697,6 +6698,8 @@ def interview_source_from_string(path, **kwargs):
     for the_filename in [docassemble.base.functions.package_question_filename(path), docassemble.base.functions.standard_question_filename(path), docassemble.base.functions.server.absolute_filename(path)]:
         #sys.stderr.write("Trying " + str(the_filename) + " with path " + str(path) + "\n")
         if the_filename is not None:
+            if illegal_dir in the_filename:
+                continue
             new_source = InterviewSourceFile(filepath=the_filename, path=path)
             if new_source.update():
                 return(new_source)
