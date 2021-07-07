@@ -211,9 +211,7 @@ if FileExists(sDocUrl) then
 
 end if
 
-Wait 400
 ThisComponent.close(True)
-Wait 400
 starDesktop.terminate
 
 end sub
