@@ -57,6 +57,11 @@ from docassemble.base.pandoc import MyPandoc
 from docassemble.base.mako.template import Template as MakoTemplate
 from docassemble.base.mako.exceptions import SyntaxException, CompileException
 from docassemble.base.astparser import myvisitnode
+from docassemble.base.translation_xlsx import (
+    INTERVIEW_TRANSLATION_XLSX_COLUMNS,
+    extract_missing_usecols_columns,
+    read_xlsx_columns,
+)
 
 equals_byte = bytes('=', 'utf-8')
 RangeType = type(range(1, 2))
@@ -2354,11 +2359,13 @@ class Question:
                     the_xlsx_file = docassemble.base.functions.package_data_filename(item)
                     if not os.path.isfile(the_xlsx_file):
                         raise DAError("The translations file " + the_xlsx_file + " could not be found")
-                    import pandas  # pylint: disable=import-outside-toplevel
-                    df = pandas.read_excel(the_xlsx_file)
-                    for column_name in ('interview', 'question_id', 'index_num', 'hash', 'orig_lang', 'tr_lang', 'orig_text', 'tr_text'):
-                        if column_name not in df.columns:
-                            raise DAError("Invalid translations file " + os.path.basename(the_xlsx_file) + ": column " + column_name + " is missing")
+                    try:
+                        df = read_xlsx_columns(the_xlsx_file, INTERVIEW_TRANSLATION_XLSX_COLUMNS)
+                    except ValueError as exc:
+                        missing_columns = extract_missing_usecols_columns(exc)
+                        if missing_columns:
+                            raise DAError("Invalid translations file " + os.path.basename(the_xlsx_file) + ": column " + missing_columns[0] + " is missing")
+                        raise
                     for indexno in df.index:
                         if not isinstance(df['tr_text'][indexno], str) or df['tr_text'][indexno] == '':
                             continue

@@ -25,6 +25,11 @@ from docassemble.base.generate_key import random_bytes, random_alphanumeric
 from docassemble.base.logger import logmessage
 import docassemble.base.functions
 import docassemble.base.parse
+from docassemble.base.translation_xlsx import (
+    WORD_TRANSLATION_XLSX_COLUMNS,
+    extract_missing_usecols_columns,
+    read_xlsx_columns,
+)
 from docassemble.webapp.app_object import app
 from docassemble.webapp.core.models import Uploads, UploadsUserAuth, UploadsRoleAuth, SpeakList, ObjectStorage, Shortener, MachineLearning, GlobalObjectStorage, Email, EmailAttachment
 from docassemble.webapp.db_object import db
@@ -499,14 +504,14 @@ def fix_words():
                         logmessage("Error reading " + str(word_file) + ": yaml could not be processed.")
             elif filename.lower().endswith('.xlsx'):
                 try:
-                    import pandas  # pylint: disable=import-outside-toplevel
-                    df = pandas.read_excel(filename, na_values=['#NA', '#N/A'], keep_default_na=False)
-                    invalid = False
-                    for column_name in ('orig_lang', 'tr_lang', 'orig_text', 'tr_text'):
-                        if column_name not in df.columns:
-                            invalid = True
-                            break
-                    if invalid:
+                    try:
+                        df = read_xlsx_columns(filename, WORD_TRANSLATION_XLSX_COLUMNS, na_values=['#NA', '#N/A'], keep_default_na=False)
+                    except ValueError as exc:
+                        if extract_missing_usecols_columns(exc):
+                            logmessage("Error reading " + str(word_file) + ": xlsx did not have the correct columns.")
+                            continue
+                        raise
+                    if df.empty:
                         logmessage("Error reading " + str(word_file) + ": xlsx did not have the correct columns.")
                         continue
                     translations = {}

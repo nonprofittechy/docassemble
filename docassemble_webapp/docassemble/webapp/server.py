@@ -61,6 +61,11 @@ import docassemble.base.interview_cache
 from docassemble.base.logger import logmessage
 from docassemble.base.pandoc import word_to_markdown, convertible_mimetypes, convertible_extensions, can_convert_word_to_markdown
 import docassemble.base.parse
+from docassemble.base.translation_xlsx import (
+    INTERVIEW_TRANSLATION_XLSX_COLUMNS,
+    extract_missing_usecols_columns,
+    read_xlsx_columns,
+)
 import docassemble.base.pdftk
 from docassemble.base.standardformatter import as_html, as_sms, get_choices_with_abb
 import docassemble.base.util
@@ -18786,14 +18791,13 @@ def translation_file():
                 the_xlsx_file = docassemble.base.functions.package_data_filename(item)
                 if not os.path.isfile(the_xlsx_file):
                     continue
-                import pandas  # pylint: disable=import-outside-toplevel
-                df = pandas.read_excel(the_xlsx_file, na_values=['NaN', '-NaN', '#NA', '#N/A'], keep_default_na=False)
-                invalid = False
-                for column_name in ('interview', 'question_id', 'index_num', 'hash', 'orig_lang', 'tr_lang', 'orig_text', 'tr_text'):
-                    if column_name not in df.columns:
-                        invalid = True
-                        break
-                if invalid:
+                try:
+                    df = read_xlsx_columns(the_xlsx_file, INTERVIEW_TRANSLATION_XLSX_COLUMNS, na_values=['NaN', '-NaN', '#NA', '#N/A'], keep_default_na=False)
+                except ValueError as exc:
+                    if extract_missing_usecols_columns(exc):
+                        continue
+                    raise
+                if df.empty:
                     continue
                 for indexno in df.index:
                     try:
